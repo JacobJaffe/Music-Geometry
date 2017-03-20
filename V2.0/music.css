@@ -1,0 +1,125 @@
+/* reset styling */
+body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,form,fieldset,input,textarea,p,blockquote,th,td{
+    margin:0;
+    padding:0;
+}
+
+
+html, body {
+    width: 100%;
+    height: 100%;
+}
+
+div {
+    display: block;
+}
+
+#wrapper {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+}
+
+/****************************
+  INFO BAR
+ ****************************/
+#topBar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 48px;
+    color: #404040;
+    background-color: #f9f9f9;
+}
+
+ul {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid #e7e7e7;
+}
+
+ li {
+    float: left;
+}
+
+li a {
+    display: inline-block;
+    color: inherit;
+    text-align: center;
+    padding: 14px 16px;
+    text-decoration: none;
+    border-right: 1px solid #e7e7e7;
+}
+
+a:hover {
+        background-color: #d5d5d5;
+}
+
+/****************************
+        Content
+ ****************************/
+
+#content{
+    position: absolute;
+    left: 0;
+    top: 48px;
+    right: 0;
+    bottom: 0;
+    overflow: hidden;
+    background-color: orange;
+}
+
+#content > div {
+    border: 1px solid #e7e7e7;
+    border-radius: 4px;
+    margin: 2px;
+}
+
+#options {
+    position: absolute;
+    overflow-y: scroll;
+    top: 0;
+    bottom: 0;
+    width: 100px;   /* note that overflow-y scroll causes extra unacounted width */
+    background: #f9f9f9;
+    padding: 1px;
+}
+
+#options button {
+    width: 100%;
+}
+
+#slider, input {
+    width: 100%;
+}
+
+#canvas-container {
+    position: absolute;
+    left: 106px;    /* acounts for the overflow-y scroll */
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: blue;
+    overflow: hidden;
+}
+
+
+#myCanvas {
+    positon: absolute;
+    align-self: center;
+    background: #eee;
+}
+
+
+
+
+
+
