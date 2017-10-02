@@ -288,3 +288,4 @@ function transformMainPiano() {
 function setupMusic() {
     console.log("Setting up music!");
 }
+
