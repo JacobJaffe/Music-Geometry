@@ -17,6 +17,9 @@ function init(containerId: string, canvasId: string)
 
     // TODO: improve starting wheel
     var r = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
+    var master_circle_style = new Style("blue", 5, null);
+    var master_circle_kinematics = new Kinematics({x: canvas.width / 2, y: canvas.height / 2}, new Coords(), )})
+
     var master_circle = new Circle("blue", {x: 0, y: 0}, {dx: 0, dy: 0}, 0, 0, 3, r);
     master_circle.Origin = {x: canvas.width / 2, y: canvas.height / 2};
 
@@ -211,7 +214,7 @@ class Controller
         //TODO: MAKE GENERIC
         isChildColliding(child: Shape): boolean {
             var circle_child =  <Circle>child;
-            if (Math.sqrt(circle_child.Pos.x * circle_child.Pos.x + circle_child.Pos.y * circle_child.Pos.y) + circle_child.Radius >= this.Radius) {
+            if (Math.sqrt(circle_child.Kinematics.Pos.x * circle_child.Kinematics.Pos.x + circle_child.Kinematics.Pos.y * circle_child.Kinematics.Pos.y) + circle_child.Radius >= this.Radius) {
                 console.log("collision");
                 return true;
             }
@@ -226,6 +229,12 @@ class Controller
 class Coords {
     x: number;
     y: number;
+
+    // TODO: this might not be the best way to have a default constructor for 0, 0
+    constructor(x?: number, y?: number) {
+        this.x = x == null ? 0 : x;
+        this.y = y == null ? 0 : y;
+    }
 }
 
 class Velocity {
@@ -238,6 +247,12 @@ class Style {
         StrokeColor: string;
         Stroke: number;
 
+        constructor(strokeColor: string, stroke: number, fillColor?: string) {
+            this.FillColor = fillColor;
+            this.StrokeColor = strokeColor;
+            this.Stroke = stroke;
+        };
+
         Draw(context: CanvasRenderingContext2D): void {
             if (this.FillColor != null) {
                 context.fillStyle = this.FillColor;
@@ -247,15 +262,23 @@ class Style {
             context.lineWidth = this.Stroke;
             context.strokeStyle = this.StrokeColor;
             context.stroke();
-        }
+        };
 }
 
 class Kinematics {
-        Origin: Coords,
+        Origin: Coords;
         Pos: Coords;
         Velocity: Velocity;
-        AngularVelocity: Number;
-        Angle: Number;
+        AngularVelocity: number;
+        Angle: number;
+
+        constructor(origin: Coords, pos: Coords, velocity: Velocity, angularVelocity?: number, angle?: number) {
+            this.Origin = origin;
+            this.Pos = pos;
+            this.Velocity = velocity;
+            this.AngularVelocity = angularVelocity;
+            this.Angle = angle;
+        }
 
         Move(): void {
             this.Pos = {x: this.Pos.x + this.Velocity.dx, y: this.Pos.y + this.Velocity.dy}
