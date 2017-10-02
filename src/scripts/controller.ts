@@ -191,21 +191,17 @@ class Controller
     class Circle extends  Shape {
 
         Radius: number;
-        constructor(center: Coords, velocity: Velocity, rotationalSpeed: number, angle: number, style: Style,
-                    radius: number) {
-            super(center, velocity, rotationalSpeed, angle, style);
+        constructor(kinematics: Kinematics, style: Style, radius: number) {
+            super(kinematics, style);
             this.Radius = radius;
         }
 
         DrawSelf(context: CanvasRenderingContext2D) : void {
             context.beginPath();
-            var x = this.Pos.x + this.Origin.x;
-            var y = this.Pos.y + this.Origin.y;
-            context.arc(x, y, this.Radius, this.Angle, this.Angle + 2 * Math.PI);
-
-            context.lineWidth = this.Stroke;
-            context.strokeStyle = this.Color;
-            context.stroke();
+            var x = this.Kinematics.Pos.x + this.Kinematics.Origin.x;
+            var y = this.Kinematics.Pos.y + this.Kinematics.Origin.y;
+            context.arc(x, y, this.Radius, this.Kinematics.Angle, this.Kinematics.Angle + 2 * Math.PI);
+            this.Style.Draw(context);
         }
 
         ResizeSelf(scale: number) {
@@ -241,6 +237,17 @@ class Style {
         FillColor: string;
         StrokeColor: string;
         Stroke: number;
+
+        Draw(context: CanvasRenderingContext2D): void {
+            if (this.FillColor != null) {
+                context.fillStyle = this.FillColor;
+            }
+            context.fill();
+
+            context.lineWidth = this.Stroke;
+            context.strokeStyle = this.StrokeColor;
+            context.stroke();
+        }
 }
 
 class Kinematics {
