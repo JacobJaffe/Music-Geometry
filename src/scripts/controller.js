@@ -15,12 +15,17 @@ function init(containerId, canvasId) {
     var master_controller = new Controller(master_display);
     var canvas = master_controller.Display.Canvas;
     // TODO: improve starting wheel
-    var r = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
-    var master_circle = new Circle("blue", { x: 0, y: 0 }, { dx: 0, dy: 0 }, 0, 0, 3, r);
-    master_circle.Origin = { x: canvas.width / 2, y: canvas.height / 2 };
-    master_circle.AddChild(new Ball("red", { x: 0, y: 0 }, { dx: 1, dy: 0 }, 0, 0, 1, r / 5));
-    master_controller.addShape(master_circle);
-    master_controller.togglePlaying();
+    var master_circle_radius = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
+    var master_circle_style = new Style(5, "blue", null);
+    var master_circle_kinematics = new Kinematics({ x: canvas.width / 2, y: canvas.height / 2 }, new Coords(), new Velocity());
+    var master_circle = new Circle(master_circle_kinematics, master_circle_style, master_circle_radius);
+    var ball_radius = master_circle_radius / 5;
+    var ball_style = new Style(1, "red", "red");
+    var ball_kinematics = new Kinematics(master_circle.Kinematics.Pos, new Coords(randomIntFromInterval(-master_circle_radius / 2, master_circle_radius / 2), randomIntFromInterval(-master_circle_radius / 2, master_circle_radius / 2)), new Velocity(randomIntFromInterval(-10, 10), randomIntFromInterval(-10, 10)));
+    var ball = new Circle(ball_kinematics, ball_style, ball_radius);
+    master_circle.AddChild(ball);
+    master_controller.AddShape(master_circle);
+    master_controller.TogglePlaying();
 }
 var View = (function () {
     function View(containerId, canvasId) {
@@ -44,19 +49,19 @@ var Controller = (function () {
         this.IsPlaying = false;
         this.Shapes = [];
     }
-    Controller.prototype.addShape = function (new_shape) {
+    Controller.prototype.AddShape = function (new_shape) {
         this.Shapes.push(new_shape);
     };
-    Controller.prototype.togglePlaying = function () {
+    Controller.prototype.TogglePlaying = function () {
         var _this = this;
         this.IsPlaying = !this.IsPlaying;
         if (this.IsPlaying) {
             requestAnimationFrame(function () {
-                _this.drawFrame();
+                _this.DrawFrame();
             });
         }
     };
-    Controller.prototype.drawFrame = function () {
+    Controller.prototype.DrawFrame = function () {
         var _this = this;
         this.Display.Context.clearRect(0, 0, this.Display.Canvas.width, this.Display.Canvas.height);
         var scale = this.Display.resize();
@@ -71,7 +76,7 @@ var Controller = (function () {
         // recursively request frames while controller is active
         if (this.IsPlaying) {
             requestAnimationFrame(function () {
-                _this.drawFrame();
+                _this.DrawFrame();
             });
         }
     };
@@ -143,18 +148,16 @@ var Shape = (function () {
 //
 var Circle = (function (_super) {
     __extends(Circle, _super);
-    function Circle(center, velocity, rotationalSpeed, angle, style, radius) {
-        _super.call(this, center, velocity, rotationalSpeed, angle, style);
+    function Circle(kinematics, style, radius) {
+        _super.call(this, kinematics, style);
         this.Radius = radius;
     }
     Circle.prototype.DrawSelf = function (context) {
         context.beginPath();
-        var x = this.Pos.x + this.Origin.x;
-        var y = this.Pos.y + this.Origin.y;
-        context.arc(x, y, this.Radius, this.Angle, this.Angle + 2 * Math.PI);
-        context.lineWidth = this.Stroke;
-        context.strokeStyle = this.Color;
-        context.stroke();
+        var x = this.Kinematics.Pos.x + this.Kinematics.Origin.x;
+        var y = this.Kinematics.Pos.y + this.Kinematics.Origin.y;
+        context.arc(x, y, this.Radius, this.Kinematics.Angle, this.Kinematics.Angle + 2 * Math.PI);
+        this.Style.Draw(context);
     };
     Circle.prototype.ResizeSelf = function (scale) {
         this.Radius = this.Radius * scale;
@@ -162,8 +165,7 @@ var Circle = (function (_super) {
     //TODO: MAKE GENERIC
     Circle.prototype.isChildColliding = function (child) {
         var circle_child = child;
-        if (Math.sqrt(circle_child.Pos.x * circle_child.Pos.x + circle_child.Pos.y * circle_child.Pos.y) + circle_child.Radius >= this.Radius) {
-            console.log("collision");
+        if (Math.sqrt(circle_child.Kinematics.Pos.x * circle_child.Kinematics.Pos.x + circle_child.Kinematics.Pos.y * circle_child.Kinematics.Pos.y) + circle_child.Radius >= this.Radius) {
             return true;
         }
         return false;
@@ -172,25 +174,53 @@ var Circle = (function (_super) {
 }(Shape));
 //}
 var Coords = (function () {
-    function Coords() {
+    // TODO: this might not be the best way to have a default constructor for 0, 0
+    function Coords(x, y) {
+        this.x = x == null ? 0 : x;
+        this.y = y == null ? 0 : y;
     }
     return Coords;
 }());
 var Velocity = (function () {
-    function Velocity() {
+    // TODO: this might not be the best way to have a default constructor for 0, 0
+    function Velocity(dx, dy) {
+        this.dx = dx == null ? 0 : dx;
+        this.dy = dy == null ? 0 : dy;
     }
     return Velocity;
 }());
 var Style = (function () {
-    function Style() {
+    function Style(stroke, strokeColor, fillColor) {
+        this.FillColor = fillColor;
+        this.StrokeColor = strokeColor;
+        this.Stroke = stroke;
     }
+    ;
+    Style.prototype.Draw = function (context) {
+        if (this.FillColor != null) {
+            context.fillStyle = this.FillColor;
+            context.fill();
+        }
+        context.lineWidth = this.Stroke;
+        context.strokeStyle = this.StrokeColor;
+        context.stroke();
+    };
+    ;
     return Style;
 }());
 var Kinematics = (function () {
-    function Kinematics() {
+    function Kinematics(origin, pos, velocity, angularVelocity, angle) {
+        this.Origin = origin;
+        this.Pos = pos;
+        this.Velocity = velocity;
+        this.AngularVelocity = angularVelocity == null ? 0 : angularVelocity;
+        this.Angle = angle == null ? 0 : angle;
     }
     Kinematics.prototype.Move = function () {
         this.Pos = { x: this.Pos.x + this.Velocity.dx, y: this.Pos.y + this.Velocity.dy };
     };
     return Kinematics;
 }());
+function randomIntFromInterval(min, max) {
+    return Math.floor(Math.random() * (max - min + 1) + min);
+}

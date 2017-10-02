@@ -16,18 +16,26 @@ function init(containerId: string, canvasId: string)
     var canvas = master_controller.Display.Canvas;
 
     // TODO: improve starting wheel
-    var r = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
-    var master_circle_style = new Style("blue", 5, null);
-    var master_circle_kinematics = new Kinematics({x: canvas.width / 2, y: canvas.height / 2}, new Coords(), )})
+    var master_circle_radius = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
+    var master_circle_style = new Style(5, "blue", null);
+    var master_circle_kinematics = new Kinematics({x: canvas.width / 2, y: canvas.height / 2}, new Coords(), new Velocity());
 
-    var master_circle = new Circle("blue", {x: 0, y: 0}, {dx: 0, dy: 0}, 0, 0, 3, r);
-    master_circle.Origin = {x: canvas.width / 2, y: canvas.height / 2};
+    var master_circle = new Circle(master_circle_kinematics, master_circle_style, master_circle_radius);
 
-    master_circle.AddChild(new Ball("red", {x: 0, y: 0}, {dx: 1, dy: 0}, 0, 0, 1, r / 5));
+    var ball_radius = master_circle_radius / 5;
+    var ball_style = new Style(1, "red", "red");
+    var ball_kinematics = new Kinematics(
+                            master_circle.Kinematics.Pos,
+                            new Coords(randomIntFromInterval(-master_circle_radius / 2, master_circle_radius / 2), randomIntFromInterval(-master_circle_radius / 2, master_circle_radius / 2)),
+                            new Velocity(randomIntFromInterval(-10, 10), randomIntFromInterval(-10, 10)));
 
-    master_controller.addShape(master_circle);
+    var ball = new Circle(ball_kinematics, ball_style, ball_radius);
+    master_circle.AddChild(ball);
 
-    master_controller.togglePlaying();
+    master_controller.AddShape(master_circle);
+
+    master_controller.TogglePlaying();
+
 }
 
 class View
@@ -68,20 +76,20 @@ class Controller
         this.Shapes = [];
     }
 
-    addShape (new_shape: Shape) {
+    AddShape (new_shape: Shape) {
         this.Shapes.push(new_shape);
     }
 
-    togglePlaying () {
+    TogglePlaying () {
         this.IsPlaying = !this.IsPlaying;
         if (this.IsPlaying) {
             requestAnimationFrame(() => {
-                this.drawFrame();
+                this.DrawFrame();
             });
         }
     }
 
-    private drawFrame () {
+    private DrawFrame () {
         this.Display.Context.clearRect(0, 0, this.Display.Canvas.width, this.Display.Canvas.height);
         var scale = this.Display.resize();
 
@@ -96,7 +104,7 @@ class Controller
         // recursively request frames while controller is active
         if (this.IsPlaying) {
             requestAnimationFrame(() => {
-                this.drawFrame();
+                this.DrawFrame();
             });
         }
     }
@@ -204,6 +212,7 @@ class Controller
             var x = this.Kinematics.Pos.x + this.Kinematics.Origin.x;
             var y = this.Kinematics.Pos.y + this.Kinematics.Origin.y;
             context.arc(x, y, this.Radius, this.Kinematics.Angle, this.Kinematics.Angle + 2 * Math.PI);
+
             this.Style.Draw(context);
         }
 
@@ -215,7 +224,6 @@ class Controller
         isChildColliding(child: Shape): boolean {
             var circle_child =  <Circle>child;
             if (Math.sqrt(circle_child.Kinematics.Pos.x * circle_child.Kinematics.Pos.x + circle_child.Kinematics.Pos.y * circle_child.Kinematics.Pos.y) + circle_child.Radius >= this.Radius) {
-                console.log("collision");
                 return true;
             }
             return false;
@@ -240,6 +248,12 @@ class Coords {
 class Velocity {
     dx: number;
     dy: number;
+
+    // TODO: this might not be the best way to have a default constructor for 0, 0
+    constructor(dx?: number, dy?: number) {
+        this.dx = dx == null ? 0 : dx;
+        this.dy = dy == null ? 0 : dy;
+    }
 }
 
 class Style {
@@ -247,7 +261,7 @@ class Style {
         StrokeColor: string;
         Stroke: number;
 
-        constructor(strokeColor: string, stroke: number, fillColor?: string) {
+        constructor(stroke: number, strokeColor: string, fillColor?: string) {
             this.FillColor = fillColor;
             this.StrokeColor = strokeColor;
             this.Stroke = stroke;
@@ -256,11 +270,12 @@ class Style {
         Draw(context: CanvasRenderingContext2D): void {
             if (this.FillColor != null) {
                 context.fillStyle = this.FillColor;
+                context.fill();
             }
-            context.fill();
 
             context.lineWidth = this.Stroke;
             context.strokeStyle = this.StrokeColor;
+
             context.stroke();
         };
 }
@@ -276,11 +291,16 @@ class Kinematics {
             this.Origin = origin;
             this.Pos = pos;
             this.Velocity = velocity;
-            this.AngularVelocity = angularVelocity;
-            this.Angle = angle;
+            this.AngularVelocity = angularVelocity == null ? 0 : angularVelocity;
+            this.Angle = angle == null ? 0 : angle;
         }
 
         Move(): void {
             this.Pos = {x: this.Pos.x + this.Velocity.dx, y: this.Pos.y + this.Velocity.dy}
         }
+}
+
+function randomIntFromInterval (min, max) : number
+{
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
