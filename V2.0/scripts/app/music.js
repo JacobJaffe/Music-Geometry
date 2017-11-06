@@ -2,6 +2,13 @@
  ABSTRACTION BARRIER: Initilizers + Global State
  **************************************/
 
+
+define(function () {
+    return {
+        setup: setup
+    };
+});
+
 /* to toggle start / stop */
 var playing = true;
 
