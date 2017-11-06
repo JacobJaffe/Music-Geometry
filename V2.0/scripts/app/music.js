@@ -3,7 +3,7 @@
  **************************************/
 
 
-define(function () {
+define(["./pianoCircle", "./coords"], function () {
     return {
         setup: setup
     };
@@ -67,134 +67,7 @@ function resizeCanvas() {
 }
 
 
-/*************************************
-    ABSTRACTION: PianoCircle 'Class'
- **************************************/
 
-
-/* TODO: consider x, y, dx, dy, and other related movement variables as own object? */
-/* TODO: have x, y, be relative ?!?!?!? */
-
-function PianoCircle(originX, originY, x, y, dx, dy, radius, numSegments, keyFunction, rotationSpeed) {
-    this.originX = originX;
-    this.originY = originY;
-    this.x = x;    /* relative to origin */
-    this.y = y;    /* relative to origin */
-    this.dx = dx;   /* x-comp of velocity */
-    this.dy = dy;   /* y-comp of velocity */
-    this.r = radius;
-    this.Segments = [];
-    this.startAngle = 0;
-    this.rotationSpeed = rotationSpeed;
-    this.children = []; /* piano inception */
-    this.balls = []; /* bouncing balls, probably just for lowest tier */
-    this.keyPress = 0; /* key pressed in container */
-
-    /* TODO: make own function */
-    for (var i = 0; i < numSegments; i++) {
-        var deactiveColor;
-        i % 2 ? deactiveColor = "white" : deactiveColor = "black";
-        var width = 360 / numSegments;
-        var depth = radius / 30;
-        this.Segments.push(new Segment(deactiveColor, width, depth));
-    }
-}
-
-PianoCircle.prototype.draw = function() {
-    var x = this.originX + this.x;
-    var y = this.originY + this.y;
-    for (var i = 0; i < this.Segments.length; i++) {
-        this.Segments[i].draw(i, x, y, this.r, this.startAngle);
-    }
-
-    /* rotate */
-    this.startAngle += 0.001 * this.rotationSpeed * masterSpeed;
-    this.drawChildren();
-};
-
-PianoCircle.prototype.drawChildren = function() {
-    for (var i = 0; i < this.children.length; i++) {
-        this.children[i].draw();
-        this.children[i].drawChildren();
-    }
-};
-
-PianoCircle.prototype.updateLocation = function() {
-    this.x += this.dx * masterSpeed;
-    this.y += this.dy * masterSpeed;
-    this.updateChildrenLocations();
-};
-
-PianoCircle.prototype.updateChildrenLocations = function() {
-    for (var i = 0; i < this.children.length; i++) {
-        var child = this.children[i];
-
-        /* adjust relative center */
-        child.originX = this.originX + this.x;
-        child.originY = this.originY + this.y;
-
-        if (collidesWithEdge(this, child)) {
-            handleCollision(this, child);
-        }
-
-        child.updateLocation();
-        child.updateChildrenLocations();
-    }
-};
-
-function collidesWithEdge(parent, child) {
-    if (Math.sqrt(child.x * child.x + child.y * child.y) + child.r >= parent.r) {
-        return true;
-    }
-}
-
-/* handles key press and new motion */
-function handleCollision(parent, child) {
-
-    /* turn off old active key */
-    parent.Segments[child.keyPress].isActive = false;
-
-    var v = Math.sqrt(child.dx * child.dx + child.dy * child.dy);
-    var AngleParentCenterToCollision = Math.atan2(-child.y, child.x);
-    var AngleChildVelocity = Math.atan2(-child.dy, child.dx);
-    var newAngle = 2 * AngleParentCenterToCollision - AngleChildVelocity;
-    child.dx = -v * Math.cos(newAngle);
-    child.dy = v * Math.sin(newAngle);
-
-    child.keyPress = parent.keyAtAngle(AngleParentCenterToCollision);
-    parent.Segments[child.keyPress].isActive = true;
-}
-
-/* returns the key at the angle */
-PianoCircle.prototype.keyAtAngle = function(angle) {
-    var numSegs = this.Segments.length;
-    var rotatedAngle = (angle + this.startAngle) * 180 / Math.PI ;
-    while (rotatedAngle < 0) {
-        rotatedAngle += 360;
-    }
-    rotatedAngle = rotatedAngle % 360;
-    var keyNum = numSegs - 1 - (rotatedAngle - rotatedAngle % (360/numSegs)) * numSegs / 360;
-    return keyNum;
-}
-
-PianoCircle.prototype.addChild = function(child) {
-    child.originX = this.originX + this.x;
-    child.originY = this.originY + this.y;
-    this.children.push(child);
-};
-
-/* used for when screen size changes */
-PianoCircle.prototype.transformChildren = function() {
-    for (var i = 0; i < this.children.length; i++) {
-        this.children[i].originX = this.originX + this.x;
-        this.children[i].originY = this.originY + this.y;
-        this.children[i].transformChildren();
-    }
-};
-
-/*************************************
- ABSTRACTION BARRIER: END PianoCircle 'class'
- **************************************/
 
 /*************************************
  ABSTRACTION BARRIER: START Segment 'class'
@@ -251,7 +124,8 @@ TODO: change names around so 'key' does not have multiple meanings
 function setupMainPiano() {
     /* to make the largest circle possible within the canavs */
     var containerR = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
-    mainPiano = new PianoCircle(canvas.width / 2, canvas.height / 2, 0, 0, 0, 0, containerR, 8,
+    center_origin = new Coords(canvas.width / 2, canvas.height / 2);
+    mainPiano = new PianoCircle(center_origin, 0, 0, 0, 0, containerR, 8,
         function() {  }, 4   );
 
     /* TODO: determine mainPiano function on key press */
@@ -264,7 +138,7 @@ function recursiveChildren(numRecursive, piano) {
     var MAX = 3;
     var MIN = -3;
     for (var i = 0; i < numRecursive; i++) {
-        var child = new PianoCircle(0, 0, 0, 0, Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN,
+        var child = new PianoCircle(new Coords(), 0, 0, Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN,
             piano.r / 1.5, 8, function() { }, 10);
         piano.addChild(child);
         piano = piano.children[0];

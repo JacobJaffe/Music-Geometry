@@ -26,51 +26,13 @@ div {
 }
 
 /****************************
-  INFO BAR
- ****************************/
-#topBar {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 48px;
-    color: #404040;
-    background-color: #f9f9f9;
-}
-
-ul {
-    list-style-type: none;
-    margin: 0;
-    padding: 0;
-    overflow: hidden;
-    border: 1px solid #e7e7e7;
-}
-
- li {
-    float: left;
-}
-
-li a {
-    display: inline-block;
-    color: inherit;
-    text-align: center;
-    padding: 14px 16px;
-    text-decoration: none;
-    border-right: 1px solid #e7e7e7;
-}
-
-a:hover {
-        background-color: #d5d5d5;
-}
-
-/****************************
         Content
  ****************************/
 
 #content{
     position: absolute;
     left: 0;
-    top: 48px;
+    top: 0;
     right: 0;
     bottom: 0;
     overflow: hidden;
