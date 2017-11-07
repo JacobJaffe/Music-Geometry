@@ -5,16 +5,10 @@
 /* TODO: have x, y, be relative ?!?!?!? */
 
 
-function PianoCircle(origin, x, y, dx, dy, radius, numSegments, keyFunction, rotationSpeed) {
-    this.origin = origin;
-    this.x = x;    /* relative to origin */
-    this.y = y;    /* relative to origin */
-    this.dx = dx;   /* x-comp of velocity */
-    this.dy = dy;   /* y-comp of velocity */
+function PianoCircle(kinematics, radius, numSegments, keyFunction) {
+    this.kinematics = kinematics;
     this.r = radius;
     this.Segments = [];
-    this.startAngle = 0;
-    this.rotationSpeed = rotationSpeed;
     this.children = []; /* piano inception */
     this.balls = []; /* bouncing balls, probably just for lowest tier */
     this.keyPress = 0; /* key pressed in container */
@@ -30,49 +24,42 @@ function PianoCircle(origin, x, y, dx, dy, radius, numSegments, keyFunction, rot
 }
 
 PianoCircle.prototype.draw = function() {
-    var x = this.origin.x + this.x;
-    var y = this.origin.y + this.y;
+    var x = this.kinematics.origin.x + this.kinematics.pos.x;
+    var y = this.kinematics.origin.y + this.kinematics.pos.y;
     for (var i = 0; i < this.Segments.length; i++) {
-        this.Segments[i].draw(i, x, y, this.r, this.startAngle);
+        this.Segments[i].draw(i, x, y, this.r, this.kinematics.angle);
     }
-
-    /* rotate */
-    this.startAngle += 0.001 * this.rotationSpeed * masterSpeed;
     this.drawChildren();
 };
 
 PianoCircle.prototype.drawChildren = function() {
-    for (var i = 0; i < this.children.length; i++) {
-        this.children[i].draw();
-        this.children[i].drawChildren();
+    for (var child of this.children) {
+        child.draw();
+        child.drawChildren();
     }
 };
 
-PianoCircle.prototype.updateLocation = function() {
-    this.x += this.dx * masterSpeed;
-    this.y += this.dy * masterSpeed;
-    this.updateChildrenLocations();
+PianoCircle.prototype.move = function() {
+    this.kinematics.move();
+    this.moveChildren();
 };
 
-PianoCircle.prototype.updateChildrenLocations = function() {
-    for (var i = 0; i < this.children.length; i++) {
-        var child = this.children[i];
-
-        /* adjust relative center */
-        child.origin.x = this.origin.x + this.x;
-        child.origin.y = this.origin.y + this.y;
-
+PianoCircle.prototype.moveChildren = function() {
+    for (var child of this.children){
         if (collidesWithEdge(this, child)) {
             handleCollision(this, child);
         }
 
-        child.updateLocation();
-        child.updateChildrenLocations();
+        /* adjust relative center */
+        child.kinematics.origin.x = this.kinematics.origin.x + this.kinematics.pos.x;
+        child.kinematics.origin.y = this.kinematics.origin.y + this.kinematics.pos.y;
+
+        child.move();
     }
 };
 
 function collidesWithEdge(parent, child) {
-    if (Math.sqrt(child.x * child.x + child.y * child.y) + child.r >= parent.r) {
+    if (Math.sqrt(child.kinematics.pos.x ** 2 + child.kinematics.pos.y ** 2) + child.r >= parent.r) {
         return true;
     }
 }
@@ -83,12 +70,12 @@ function handleCollision(parent, child) {
     /* turn off old active key */
     parent.Segments[child.keyPress].isActive = false;
 
-    var v = Math.sqrt(child.dx * child.dx + child.dy * child.dy);
-    var AngleParentCenterToCollision = Math.atan2(-child.y, child.x);
-    var AngleChildVelocity = Math.atan2(-child.dy, child.dx);
+    var v = Math.sqrt(child.kinematics.velocity.dx ** 2 + child.kinematics.velocity.dy ** 2);
+    var AngleParentCenterToCollision = Math.atan2(-child.kinematics.pos.y, child.kinematics.pos.x);
+    var AngleChildVelocity = Math.atan2(-child.kinematics.velocity.dy, child.kinematics.velocity.dx);
     var newAngle = 2 * AngleParentCenterToCollision - AngleChildVelocity;
-    child.dx = -v * Math.cos(newAngle);
-    child.dy = v * Math.sin(newAngle);
+    child.kinematics.velocity.dx = -v * Math.cos(newAngle);
+    child.kinematics.velocity.dy = v * Math.sin(newAngle);
 
     child.keyPress = parent.keyAtAngle(AngleParentCenterToCollision);
     parent.Segments[child.keyPress].isActive = true;
@@ -97,7 +84,7 @@ function handleCollision(parent, child) {
 /* returns the key at the angle */
 PianoCircle.prototype.keyAtAngle = function(angle) {
     var numSegs = this.Segments.length;
-    var rotatedAngle = (angle + this.startAngle) * 180 / Math.PI ;
+    var rotatedAngle = (angle + this.kinematics.angle) * 180 / Math.PI ;
     while (rotatedAngle < 0) {
         rotatedAngle += 360;
     }
@@ -107,16 +94,30 @@ PianoCircle.prototype.keyAtAngle = function(angle) {
 }
 
 PianoCircle.prototype.addChild = function(child) {
-    child.origin.x = this.origin.x + this.x;
-    child.origin.y = this.origin.y + this.y;
+    child.kinematics.origin.x = this.kinematics.origin.x + this.kinematics.pos.x;
+    child.kinematics.origin.y = this.kinematics.origin.y + this.kinematics.pos.y;
     this.children.push(child);
 };
 
-/* used for when screen size changes */
-PianoCircle.prototype.transformChildren = function() {
-    for (var i = 0; i < this.children.length; i++) {
-        this.children[i].origin.x = this.origin.x + this.x;
-        this.children[i].origin.y = this.origin.y + this.y;
-        this.children[i].transformChildren();
+
+PianoCircle.prototype.reCenter = function(new_origin) {
+    this.kinematics.origin = new_origin;
+    this.reCenterChildren();
+};
+
+PianoCircle.prototype.reCenterChildren = function() {
+    for (var child of this.children) {
+        child.kinematics.origin.x = this.kinematics.origin.x + this.kinematics.pos.x;
+        child.kinematics.origin.y = this.kinematics.origin.y + this.kinematics.pos.y;
+        child.reCenterChildren();
+    }
+};
+
+
+PianoCircle.prototype.reSize = function(scale) {
+    this.r = this.r * scale;
+
+    for (var child of this.children) {
+        child.reSize(scale);
     }
 };

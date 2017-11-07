@@ -3,7 +3,7 @@
  **************************************/
 
 
-define(["./pianoCircle", "./coords"], function () {
+define(["./pianoCircle", "./coords", "./velocity", "./kinematics", "./pianoSegment"], function () {
     return {
         setup: setup
     };
@@ -26,6 +26,7 @@ function togglePlaying() {
         text.innerHTML = "Play";
         moveMasterSpeedSlider(0);
     }
+    console.log(new Kinematics());
 }
 
 function setup() {
@@ -67,35 +68,10 @@ function resizeCanvas() {
 }
 
 
-
-
 /*************************************
  ABSTRACTION BARRIER: START Segment 'class'
  **************************************/
-function Segment(deactiveColor, width, depth) {
-    this.deactiveColor = deactiveColor;
-    this.width = width;
-    this.depth = depth;
-    this.activeColor = "blue";
-    this.isActive = false;
-}
 
-Segment.prototype.draw = function(i, x, y, r, startAngle) {
-    context.beginPath();
-    context.arc(x, y, r,
-        (startAngle + this.width * i * Math.PI / 180),
-        (startAngle + this.width * (i + 1) * Math.PI / 180), false);
-
-    if (this.isActive) {
-        context.lineWidth = this.depth * 2;
-        context.strokeStyle = this.activeColor;
-    } else {
-        context.lineWidth = this.depth;
-        context.strokeStyle = this.deactiveColor;
-    }
-
-    context.stroke();
-};
 
 /*************************************
  ABSTRACTION BARRIER: Start Segment 'class'
@@ -106,8 +82,13 @@ Segment.prototype.draw = function(i, x, y, r, startAngle) {
 function drawFrame() {
     context.clearRect(0, 0, canvas.width, canvas.height); /* clears previous frame */
     resizeCanvas();
-    transformMainPiano();
-    mainPiano.updateLocation();
+
+    var containerR = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
+    var scale = (containerR - 5) / mainPiano.r;
+    console.log(scale);
+    mainPiano.reCenter(new Coords(canvas.width / 2, canvas.height / 2));
+    mainPiano.reSize(scale);
+    mainPiano.move();
     mainPiano.draw();
 
     if (playing) {
@@ -125,8 +106,9 @@ function setupMainPiano() {
     /* to make the largest circle possible within the canavs */
     var containerR = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
     center_origin = new Coords(canvas.width / 2, canvas.height / 2);
-    mainPiano = new PianoCircle(center_origin, 0, 0, 0, 0, containerR, 8,
-        function() {  }, 4   );
+    kinematics = new Kinematics(center_origin, new Coords(), new Velocity(), 4, 0);
+    mainPiano = new PianoCircle(kinematics, containerR, 8,
+        function() { });
 
     /* TODO: determine mainPiano function on key press */
    recursiveChildren(3, mainPiano);
@@ -138,27 +120,11 @@ function recursiveChildren(numRecursive, piano) {
     var MAX = 3;
     var MIN = -3;
     for (var i = 0; i < numRecursive; i++) {
-        var child = new PianoCircle(new Coords(), 0, 0, Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN,
-            piano.r / 1.5, 8, function() { }, 10);
+        var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
+        var kinematics = new Kinematics(new Coords(), new Coords(), velocity, 10, 0);
+        var child = new PianoCircle(kinematics, piano.r / 1.5, 8, function() { });
         piano.addChild(child);
         piano = piano.children[0];
-    }
-}
-
-/* for reajusting the containing piano's position and size. Children will be scaled within it. */
-function transformMainPiano() {
-    var containerR = canvas.width > canvas.height ? canvas.height / 2 : canvas.width / 2;
-    var scale = (containerR - 5) / mainPiano.r;
-    /* TODO: consider potential issue here, where radius is same but origin changes? Probably dosn't matter because would be square? */
-    if (scale != 1) {
-        mainPiano.r = containerR - 5;
-        /* TODO: find better way to make make it not spill out */
-        mainPiano.originX = canvas.width / 2;
-        mainPiano.originY = canvas.height / 2;
-        mainPiano.segDepth = containerR / 30;
-        /* TODO Make these own function? */
-        /* TODO: transform children, think inductively, this is the base case */
-        mainPiano.transformChildren();
     }
 }
 

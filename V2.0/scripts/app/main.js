@@ -7,7 +7,6 @@ define(function (require) {
     // with a relative require call,
     // like:
     var music = require('./music');
-    var coords = require('./coords');
 
     // Load library/vendor modules using
     // full IDs, like:
