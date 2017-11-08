@@ -23,13 +23,12 @@ Controller.prototype.AddShape = function(shape) {
 
 Controller.prototype.TogglePlaying = function(toggle) {
     this.isPlaying = toggle == null ? !this.isPlaying : toggle; // by default invert, can over-ride to set a state
-
-    if (playing == true) {
-        this.pauseButton.innerHTML = "Pause";
+    if (this.isPlaying) {
+        this.Inputs.pauseButton.innerHTML = "Pause";
         moveMasterSpeedSlider(this.speed);
         this.drawFrame();
     } else {
-        this.pauseButton.innerHTML = "Play";
+        this.Inputs.pauseButton.innerHTML = "Play";
         moveMasterSpeedSlider(0);
     }
 };

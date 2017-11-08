@@ -30,3 +30,7 @@ function moveMasterSpeedSlider(speed) {
     var masterSpeedSlider = document.getElementById("masterSpeedSlider");
     masterSpeedSlider.value = speed;
 }
+
+function togglePlaying() {
+    MASTER_CONTROLLER.TogglePlaying();
+}
