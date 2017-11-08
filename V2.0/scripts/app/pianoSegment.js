@@ -1,7 +1,7 @@
 /**
  * Created by JacobJaffe on 11/6/17.
  */
-function Segment(deactiveColor, width, depth) {
+function pianoSegment(deactiveColor, width, depth) {
     this.deactiveColor = deactiveColor;
     this.width = width;
     this.depth = depth;
@@ -9,7 +9,7 @@ function Segment(deactiveColor, width, depth) {
     this.isActive = false;
 }
 
-Segment.prototype.draw = function(i, x, y, r, startAngle) {
+pianoSegment.prototype.draw = function(i, x, y, r, startAngle, context) {
     context.beginPath();
     context.arc(x, y, r,
         (startAngle + this.width * i * Math.PI / 180),

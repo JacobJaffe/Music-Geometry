@@ -19,32 +19,31 @@ function PianoCircle(kinematics, radius, numSegments, keyFunction) {
         i % 2 ? deactiveColor = "white" : deactiveColor = "black";
         var width = 360 / numSegments;
         var depth = radius / 30;
-        this.Segments.push(new Segment(deactiveColor, width, depth));
+        this.Segments.push(new pianoSegment(deactiveColor, width, depth));
     }
 }
 
-PianoCircle.prototype.draw = function() {
+PianoCircle.prototype.draw = function(context) {
     var x = this.kinematics.origin.x + this.kinematics.pos.x;
     var y = this.kinematics.origin.y + this.kinematics.pos.y;
     for (var i = 0; i < this.Segments.length; i++) {
-        this.Segments[i].draw(i, x, y, this.r, this.kinematics.angle);
+        this.Segments[i].draw(i, x, y, this.r, this.kinematics.angle, context);
     }
-    this.drawChildren();
+    this.drawChildren(context);
 };
 
-PianoCircle.prototype.drawChildren = function() {
+PianoCircle.prototype.drawChildren = function(context) {
     for (var child of this.children) {
-        child.draw();
-        child.drawChildren();
+        child.draw(context);
     }
 };
 
-PianoCircle.prototype.move = function() {
-    this.kinematics.move();
-    this.moveChildren();
+PianoCircle.prototype.move = function(masterSpeed) {
+    this.kinematics.move(masterSpeed);
+    this.moveChildren(masterSpeed);
 };
 
-PianoCircle.prototype.moveChildren = function() {
+PianoCircle.prototype.moveChildren = function(masterSpeed) {
     for (var child of this.children){
         if (collidesWithEdge(this, child)) {
             handleCollision(this, child);
@@ -54,7 +53,7 @@ PianoCircle.prototype.moveChildren = function() {
         child.kinematics.origin.x = this.kinematics.origin.x + this.kinematics.pos.x;
         child.kinematics.origin.y = this.kinematics.origin.y + this.kinematics.pos.y;
 
-        child.move();
+        child.move(masterSpeed);
     }
 };
 
@@ -116,6 +115,9 @@ PianoCircle.prototype.reCenterChildren = function() {
 
 PianoCircle.prototype.reSize = function(scale) {
     this.r = this.r * scale;
+    for (var segment of this.Segments) {
+        segment.depth = segment.depth * scale;
+    }
 
     for (var child of this.children) {
         child.reSize(scale);

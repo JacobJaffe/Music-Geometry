@@ -8,10 +8,11 @@ var Kinematics = (function () {
         this.angularVelocity = angularVelocity == null ? 0 : angularVelocity;
         this.angle = angle == null ? 0 : angle;
     }
-    Kinematics.prototype.move = function () {
+    Kinematics.prototype.move = function (masterSpeed) {
         this.pos = new Coords(this.pos.x + this.velocity.dx, this.pos.y + this.velocity.dy);
         this.angle  += 0.001 * this.angularVelocity * masterSpeed;
     };
+
     return Kinematics;
 }());
 
