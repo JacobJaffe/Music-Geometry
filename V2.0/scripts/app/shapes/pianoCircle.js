@@ -12,7 +12,8 @@ function PianoCircle(kinematics, radius, numSegments, keyFunction) {
     this.children = []; /* piano inception */
     this.balls = []; /* bouncing balls, probably just for lowest tier */
     this.keyPress = 0; /* key pressed in container */
-    this.isBeingHovered = false;
+    this.isHovered = false;
+    this.isSelected = false;
     this.isPaused = false;
 
     // TODO : STyLE
@@ -31,8 +32,23 @@ function PianoCircle(kinematics, radius, numSegments, keyFunction) {
 }
 
 PianoCircle.prototype.draw = function(context) {
-    var x = this.kinematics.origin.x + this.kinematics.pos.x;
-    var y = this.kinematics.origin.y + this.kinematics.pos.y;
+
+    // set the style in order of priority
+    // default
+    this.deactiveColor_primary = "white";
+    this.deactiveColor_secondary = "black";
+
+    // hovered
+    if (this.isHovered) {
+        this.deactiveColor_primary = "grey";
+        this.deactiveColor_secondary = "black";
+    }
+
+    // selected
+    if (this.isSelected) {
+        this.deactiveColor_primary = "red";
+    }
+
     this.drawSegments(context);
     this.drawChildren(context);
 };
@@ -157,14 +173,19 @@ PianoCircle.prototype.checkHovered = function(coords) {
 };
 
 PianoCircle.prototype.toggleHovered = function(overide) {
-    if (overide == null || overide != this.isBeingHovered) {
-        this.deactiveColor_primary = this.deactiveColor_primary == "white" ?  "grey" : "white";
-        this.isBeingHovered = !this.isBeingHovered;
+    if (overide == null || overide != this.isHovered) {
+        this.isHovered = !this.isHovered;
     }
 };
 
 PianoCircle.prototype.togglePaused = function(overide) {
     if (overide == null || overide != this.isPaused) {
         this.isPaused = !this.isPaused;
+    }
+};
+
+PianoCircle.prototype.toggleSelected = function(overide) {
+    if (overide == null || overide != this.isSelected) {
+        this.isSelected = !this.isSelected;
     }
 };

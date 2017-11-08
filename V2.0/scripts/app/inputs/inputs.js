@@ -7,6 +7,7 @@ function Inputs(speedSliderId, pauseButtonId) {
     this.pauseButton = document.getElementById(pauseButtonId); // "togglePlaying"
     this.mouseCoords;
     this.hoveredShape = null;
+    this.selectedShape = null;
 }
 
 /* mouse Coordinates */
@@ -31,13 +32,31 @@ Inputs.prototype.onMouseMove = (event, shapes, offsetLeft, offsetTop) => {
         // NOTE: if the hovered shape remains the same, then nothing should happen, as this inverses step 1)
         if (this.hoveredShape != null) {
             this.hoveredShape.toggleHovered();
-        }    }
+        }
+    }
+
+    if (this.hoveredShape != null) {
+        document.body.style.cursor = 'pointer';
+    } else {
+        document.body.style.cursor = 'default';
+    }
 };
 
 Inputs.prototype.onMouseDown = () =>
 {
-    console.log(this.hoveredShape);
-    this.hoveredShape.togglePaused();
+    // 1) if previously had a Selected shape, toggle it
+    if (this.selectedShape != null) {
+        this.selectedShape.toggleSelected();
+    }
+
+    // 2) compute new selected shape, from current hovered
+    this.selectedShape = this.hoveredShape;
+
+    // 3) if now has a hovered shape, toggle it
+    // NOTE: if the hovered shape remains the same, then nothing should happen, as this inverses step 1)
+    if (this.selectedShape != null) {
+        this.selectedShape.toggleSelected();
+    }
 };
 
 function recursiveFindHoveredShape(shape, coords) {
@@ -56,6 +75,6 @@ function recursiveFindHoveredShape(shape, coords) {
         return shape;
     }
 
-    // shape is not beingh overed
-    return null
+    // shape is not being hovered
+    return null;
 };
