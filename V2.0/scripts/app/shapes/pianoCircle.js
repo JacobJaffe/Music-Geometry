@@ -12,6 +12,12 @@ function PianoCircle(kinematics, radius, numSegments, keyFunction) {
     this.children = []; /* piano inception */
     this.balls = []; /* bouncing balls, probably just for lowest tier */
     this.keyPress = 0; /* key pressed in container */
+    this.isBeingHovered = false;
+
+    // TODO : STyLE
+    this.activeColor = "blue";
+    this.deactiveColor_primary = "white";
+    this.deactiveColor_secondary = "black";
 
     /* TODO: make own function */
     for (var i = 0; i < numSegments; i++) {
@@ -19,17 +25,28 @@ function PianoCircle(kinematics, radius, numSegments, keyFunction) {
         i % 2 ? deactiveColor = "white" : deactiveColor = "black";
         var width = 360 / numSegments;
         var depth = radius / 30;
-        this.Segments.push(new pianoSegment(deactiveColor, width, depth));
+        this.Segments.push(new pianoSegment(width, depth));
     }
 }
 
 PianoCircle.prototype.draw = function(context) {
     var x = this.kinematics.origin.x + this.kinematics.pos.x;
     var y = this.kinematics.origin.y + this.kinematics.pos.y;
-    for (var i = 0; i < this.Segments.length; i++) {
-        this.Segments[i].draw(i, x, y, this.r, this.kinematics.angle, context);
-    }
+    this.drawSegments(context);
     this.drawChildren(context);
+};
+
+PianoCircle.prototype.drawSegments = function(context) {
+    let x = this.kinematics.origin.x + this.kinematics.pos.x;
+    let y = this.kinematics.origin.y + this.kinematics.pos.y;
+    let radius = this.r;
+
+    for (var index in this.Segments) {
+        var activeColor = this.activeColor;
+        var deactiveColor = index % 2 ? this.deactiveColor_primary : this.deactiveColor_secondary;
+        var angle = this.kinematics.angle + 2 * index * Math.PI / this.Segments.length;
+        this.Segments[index].draw(activeColor, deactiveColor, x, y, radius, angle, context);
+    }
 };
 
 PianoCircle.prototype.drawChildren = function(context) {
@@ -90,7 +107,7 @@ PianoCircle.prototype.keyAtAngle = function(angle) {
     rotatedAngle = rotatedAngle % 360;
     var keyNum = numSegs - 1 - (rotatedAngle - rotatedAngle % (360/numSegs)) * numSegs / 360;
     return keyNum;
-}
+};
 
 PianoCircle.prototype.addChild = function(child) {
     child.kinematics.origin.x = this.kinematics.origin.x + this.kinematics.pos.x;
@@ -121,5 +138,44 @@ PianoCircle.prototype.reSize = function(scale) {
 
     for (var child of this.children) {
         child.reSize(scale);
+    }
+};
+
+
+//TODO: this is a really janky way to get the hovered element back. its 5.08 am this is not good code :(
+// a shape is being hovered IFF it is being hovered and its children are not.
+PianoCircle.prototype.hover = function(x, y) {
+
+    // shift perspective to origin
+    let shifted_x = x - this.kinematics.origin.x - this.kinematics.pos.x;
+    let shifted_y = y - this.kinematics.origin.y - this.kinematics.pos.y;
+    let distanceFromOirgin = Math.sqrt(shifted_x ** 2 + shifted_y ** 2);
+
+    if (distanceFromOirgin < this.r) {
+        var childHovered = this.hoverChildren(x, y);
+        this.toggleHovered(childHovered == null);
+        return childHovered;
+    } else {
+        this.toggleHovered(false);
+        return null;
+    }
+};
+
+PianoCircle.prototype.hoverChildren = function(x, y) {
+    for (var child of this.children) {
+
+        // try untill you are hovering a child
+        child.hover(x, y);
+        if(child.isBeingHovered) {
+            return child;
+        }
+    }
+    return null;
+};
+
+PianoCircle.prototype.toggleHovered = function(overide) {
+    if (overide == null || overide != this.isBeingHovered) {
+        this.deactiveColor_primary = this.deactiveColor_primary == "white" ?  "grey" : "white";
+        this.isBeingHovered = overide;
     }
 };

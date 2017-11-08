@@ -4,12 +4,13 @@
 
 // TODO: use the view object also
 function Controller(speedSliderId, pauseButtonId, canvasContainerId, canvasId) {
-    this.speedSlider = document.getElementById(speedSliderId); // "masterSpeedSlider"
-    this.pauseButton = document.getElementById(pauseButtonId); // "togglePlaying"
+    this.Inputs = new Inputs(speedSliderId, pauseButtonId);
     this.canvasContainer = document.getElementById(canvasContainerId); // "canvas-container"
     this.canvas = document.getElementById(canvasId); // "myCanvas"
     this.context = this.canvas.getContext("2d");
     this.canvasContainerRadius = (this.canvas.width > this.canvas.height ? this.canvas.height / 2 : this.canvas.width / 2) - 10;
+    this.canvas.addEventListener("mousemove", (event) => {this.Inputs.onMouseMove(event, this.shapes, this.canvas.offsetLeft, this.canvas.offsetTop)}, false);
+    this.canvas.addEventListener("mousedown", (event) => {this.Inputs.onMouseDown()}, false);
 
     this.shapes = [];
     this.isPlaying = false;
@@ -26,7 +27,7 @@ Controller.prototype.TogglePlaying = function(toggle) {
     if (playing == true) {
         this.pauseButton.innerHTML = "Pause";
         moveMasterSpeedSlider(this.speed);
-        drawFrame();
+        this.drawFrame();
     } else {
         this.pauseButton.innerHTML = "Play";
         moveMasterSpeedSlider(0);
@@ -55,6 +56,7 @@ Controller.prototype.drawFrame = function() {
         shape.move(this.speed);
         shape.draw(this.context);
     }
+
     // recursively request frames while controller is active
     if (this.isPlaying) {
         requestAnimationFrame(function () {

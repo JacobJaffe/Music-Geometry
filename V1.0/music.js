@@ -572,9 +572,7 @@ function setup()
 
 function setupMouse()
 {
-    canvas.addEventListener("mousedown", doMouseDown, false);
-    canvas.addEventListener("mousemove", doMouseMove, false);
-    canvas.addEventListener("mouseup", doMouseUp, false);
+
 }
 
 var mousedown = false;
@@ -593,6 +591,7 @@ var mouseY;
 function doMouseMove(event) {
     mouseX = event.pageX;
     mouseY = event.pageY;
+    console.log("x: " + mouseX + ", y: " + mouseY);
 }
 
 var orbitRadius = 20;
