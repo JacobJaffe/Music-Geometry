@@ -137,7 +137,7 @@ PianoCircle.prototype.addChild = function(child) {
 
 PianoCircle.prototype.reCenter = function(new_origin) {
     this.kinematics.origin = new_origin;
-    this.reCenterChildren();
+    //this.reCenterChildren();
 };
 
 PianoCircle.prototype.reCenterChildren = function() {

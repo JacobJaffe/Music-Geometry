@@ -5,10 +5,11 @@
 function Inputs(speedSliderId, pauseButtonId) {
     this.speedSlider = document.getElementById(speedSliderId); // "masterSpeedSlider"
     this.pauseButton = document.getElementById(pauseButtonId); // "togglePlaying"
+
     this.mouseCoords;
     this.hoveredShape = null;
     this.selectedShape = null;
-}
+};
 
 /* mouse Coordinates */
 
@@ -62,7 +63,7 @@ Inputs.prototype.onMouseDown = () =>
 function recursiveFindHoveredShape(shape, coords) {
     var hoveredShape = null;
     if (shape.checkHovered(coords)) {
-        for (child of shape.children) {
+        for (var child of shape.children) {
             hoveredShape = recursiveFindHoveredShape(child, coords);
 
             // a child is being hovered
@@ -78,3 +79,36 @@ function recursiveFindHoveredShape(shape, coords) {
     // shape is not being hovered
     return null;
 };
+
+
+/**
+ * Created by JacobJaffe on 11/8/17.
+ */
+
+/* KEY BINDINGS: */
+/* Spacebar */
+var key_togglePlaying = 32;
+
+function keyboardPress(e) {
+    var keyCode = e.keyCode;
+
+    /* space  TODO: add a case statement for various keys */
+    if (keyCode == key_togglePlaying) {
+        togglePlaying();
+    }
+}
+
+/* a listener for the slider user input */
+function masterSpeedSlider(speed) {
+    MASTER_CONTROLLER.speed = speed;
+}
+
+/* moves master speed slider to indicated speed */
+function moveMasterSpeedSlider(speed) {
+    var masterSpeedSlider = document.getElementById("masterSpeedSlider");
+    masterSpeedSlider.value = speed;
+}
+
+function togglePlaying() {
+    MASTER_CONTROLLER.TogglePlaying();
+}

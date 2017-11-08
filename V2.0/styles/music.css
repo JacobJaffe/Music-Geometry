@@ -53,6 +53,18 @@ div {
     width: 100px;   /* note that overflow-y scroll causes extra unacounted width */
     background: #f9f9f9;
     padding: 1px;
+    display: flex;
+    flex-direction: column;
+}
+
+.half-containers {
+    flex: 0 0 100%;
+    max-height: 100px;
+    min-height: 200px;
+    max-width: 100%;
+    border: 1px solid red;
+    padding: .5em;
+    overflow: hidden;
 }
 
 #options button {

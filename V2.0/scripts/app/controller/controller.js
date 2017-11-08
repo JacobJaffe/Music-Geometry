@@ -5,20 +5,15 @@
 // TODO: use the view object also
 function Controller(speedSliderId, pauseButtonId, canvasContainerId, canvasId) {
     this.Inputs = new Inputs(speedSliderId, pauseButtonId);
-    this.canvasContainer = document.getElementById(canvasContainerId); // "canvas-container"
-    this.canvas = document.getElementById(canvasId); // "myCanvas"
-    this.context = this.canvas.getContext("2d");
-    this.canvasContainerRadius = (this.canvas.width > this.canvas.height ? this.canvas.height / 2 : this.canvas.width / 2) - 10;
-    this.canvas.addEventListener("mousemove", (event) => {this.Inputs.onMouseMove(event, this.shapes, this.canvas.offsetLeft, this.canvas.offsetTop)}, false);
-    this.canvas.addEventListener("mousedown", (event) => {this.Inputs.onMouseDown()}, false);
+    this.View = new View(canvasContainerId, canvasId);
+
+    this.View.canvas.addEventListener("mousemove", (event) => {this.Inputs.onMouseMove(event, this.shapes, this.View.canvas.offsetLeft, this.View.canvas.offsetTop)}, false);
+    this.View.canvas.addEventListener("mousedown", (event) => {this.Inputs.onMouseDown()}, false);
+    window.addEventListener('keypress', keyboardPress, false);
 
     this.shapes = [];
     this.isPlaying = false;
     this.speed = 1;
-}
-
-Controller.prototype.AddShape = function(shape) {
-  this.shapes.push(shape);
 };
 
 Controller.prototype.TogglePlaying = function(toggle) {
@@ -41,19 +36,18 @@ Controller.prototype.Start = function() {
 /* draw a single frame of animation, call animation loop */
 Controller.prototype.drawFrame = function() {
     var _this = this;
-    this.resizeCanvas();
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    var old_radius = this.View.canvasContainerRadius;
 
+    this.View.resizeCanvas();
+    this.View.clear();
 
-    var old_radius = this.canvasContainerRadius;
-    this.canvasContainerRadius = (this.canvas.width > this.canvas.height ? this.canvas.height / 2 : this.canvas.width / 2) - 5;
-    var scale = this.canvasContainerRadius / old_radius;
+    var scale = this.View.canvasContainerRadius / old_radius;
 
     for (var shape of this.shapes) {
-        shape.reCenter(new Coords(this.canvas.width / 2, this.canvas.height / 2));
+        shape.reCenter(this.View.getCenter());
         shape.reSize(scale);
         shape.move(this.speed);
-        shape.draw(this.context);
+        shape.draw(this.View.context);
     }
 
     // recursively request frames while controller is active
@@ -64,17 +58,16 @@ Controller.prototype.drawFrame = function() {
     }
 };
 
-Controller.prototype.resizeCanvas = function () {
-    this.canvas.width = this.canvasContainer.clientWidth;
-    this.canvas.height = this.canvasContainer.clientHeight;
+Controller.prototype.AddShape = function(shape) {
+    this.shapes.push(shape);
 };
 
 Controller.prototype.CreateMasterCircle = function () {
-    var origin = new Coords(this.canvas.width / 2, this.canvas.height / 2);
+    var origin = this.View.getCenter();
     var pos = new Coords();
     var velocity = new Velocity();
     var kinematics = new Kinematics(origin, pos, velocity, 5, 0);
-    var masterCircle = new PianoCircle(kinematics, this.canvasContainerRadius, 12, () => {});
+    var masterCircle = new PianoCircle(kinematics, this.View.canvasContainerRadius, 12, () => {});
 
     // Children of the master piano
     var MAX = 3;
