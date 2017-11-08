@@ -13,6 +13,7 @@ function PianoCircle(kinematics, radius, numSegments, keyFunction) {
     this.balls = []; /* bouncing balls, probably just for lowest tier */
     this.keyPress = 0; /* key pressed in container */
     this.isBeingHovered = false;
+    this.isPaused = false;
 
     // TODO : STyLE
     this.activeColor = "blue";
@@ -56,7 +57,9 @@ PianoCircle.prototype.drawChildren = function(context) {
 };
 
 PianoCircle.prototype.move = function(masterSpeed) {
-    this.kinematics.move(masterSpeed);
+    if (!this.isPaused) {
+        this.kinematics.move(masterSpeed);
+    }
     this.moveChildren(masterSpeed);
 };
 
@@ -144,38 +147,24 @@ PianoCircle.prototype.reSize = function(scale) {
 
 //TODO: this is a really janky way to get the hovered element back. its 5.08 am this is not good code :(
 // a shape is being hovered IFF it is being hovered and its children are not.
-PianoCircle.prototype.hover = function(x, y) {
+PianoCircle.prototype.checkHovered = function(coords) {
 
     // shift perspective to origin
-    let shifted_x = x - this.kinematics.origin.x - this.kinematics.pos.x;
-    let shifted_y = y - this.kinematics.origin.y - this.kinematics.pos.y;
+    let shifted_x = coords.x - this.kinematics.origin.x - this.kinematics.pos.x;
+    let shifted_y = coords.y - this.kinematics.origin.y - this.kinematics.pos.y;
     let distanceFromOirgin = Math.sqrt(shifted_x ** 2 + shifted_y ** 2);
-
-    if (distanceFromOirgin < this.r) {
-        var childHovered = this.hoverChildren(x, y);
-        this.toggleHovered(childHovered == null);
-        return childHovered;
-    } else {
-        this.toggleHovered(false);
-        return null;
-    }
-};
-
-PianoCircle.prototype.hoverChildren = function(x, y) {
-    for (var child of this.children) {
-
-        // try untill you are hovering a child
-        child.hover(x, y);
-        if(child.isBeingHovered) {
-            return child;
-        }
-    }
-    return null;
+    return (distanceFromOirgin < this.r);
 };
 
 PianoCircle.prototype.toggleHovered = function(overide) {
     if (overide == null || overide != this.isBeingHovered) {
         this.deactiveColor_primary = this.deactiveColor_primary == "white" ?  "grey" : "white";
-        this.isBeingHovered = overide;
+        this.isBeingHovered = !this.isBeingHovered;
+    }
+};
+
+PianoCircle.prototype.togglePaused = function(overide) {
+    if (overide == null || overide != this.isPaused) {
+        this.isPaused = !this.isPaused;
     }
 };

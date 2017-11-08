@@ -82,7 +82,29 @@ Controller.prototype.CreateMasterCircle = function () {
     var angle = 0;
     var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
     var kinematics = new Kinematics(new Coords(), new Coords(), velocity, 10, 0 );
-    var child = new PianoCircle(kinematics, masterCircle.r / 1.5, 8, () => { });
-    masterCircle.addChild(child);
+    var child1 = new PianoCircle(kinematics, masterCircle.r / 1.5, 8, () => { });
+
+
+    // Children of children of the master piano
+    var MAX = 3;
+    var MIN = -3;
+    var angle = 0;
+    var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
+    var kinematics = new Kinematics(new Coords(), new Coords(), velocity, 10, 0 );
+    var child2 = new PianoCircle(kinematics, child1.r / 1.5, 8, () => { });
+
+
+    // Children of children of children of the master piano
+    var MAX = 3;
+    var MIN = -3;
+    var angle = 0;
+    var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
+    var kinematics = new Kinematics(new Coords(), new Coords(), velocity, 10, 0 );
+    var child3 = new PianoCircle(kinematics, child2.r / 1.5, 8, () => { });
+
+    child2.addChild(child3);
+    child1.addChild(child2);
+
+    masterCircle.addChild(child1);
     this.AddShape(masterCircle);
 };

@@ -5,8 +5,7 @@
 function Inputs(speedSliderId, pauseButtonId) {
     this.speedSlider = document.getElementById(speedSliderId); // "masterSpeedSlider"
     this.pauseButton = document.getElementById(pauseButtonId); // "togglePlaying"
-    this.mouseX;
-    this.mouseY;
+    this.mouseCoords;
     this.hoveredShape = null;
 }
 
@@ -14,18 +13,49 @@ function Inputs(speedSliderId, pauseButtonId) {
 
 Inputs.prototype.onMouseMove = (event, shapes, offsetLeft, offsetTop) => {
     // what's this hard coded nonsense?!? or, more eloquently: TODO : figure out how to dynamically know where canvas starts
-    this.mouseX = event.clientX - offsetLeft - 104;
-    this.mouseY = event.clientY - offsetTop;
+    this.mouseCoords =  new Coords(event.clientX - offsetLeft - 104, event.clientY - offsetTop);
 
-    // This code does too much in too little lines. the first line essentially get the hovered child.
-    // The second checks the base case that the OG parent isn't being hovered.
+    // This abuses that we can access the shapes' children, but its straightforward. TODO: don't do this badly!
+    // Also, this probably won't work great for more than one master shape. But we don't really want to have more than 1...?
     for (var shape of shapes) {
-        this.hoveredShape = shape.hover(this.mouseX, this.mouseY);
-        this.hoveredShape = shape.isBeingHovered ? shape : this.hoveredShape;
-    }
+
+        // 1) if previously had a hovered shape, toggle it
+        if (this.hoveredShape != null) {
+            this.hoveredShape.toggleHovered();
+        }
+
+        // 2) compute new hovered shape
+        this.hoveredShape = recursiveFindHoveredShape(shape, this.mouseCoords);
+
+        // 3) if now has a hovered shape, toggle it
+        // NOTE: if the hovered shape remains the same, then nothing should happen, as this inverses step 1)
+        if (this.hoveredShape != null) {
+            this.hoveredShape.toggleHovered();
+        }    }
 };
 
 Inputs.prototype.onMouseDown = () =>
 {
     console.log(this.hoveredShape);
+    this.hoveredShape.togglePaused();
+};
+
+function recursiveFindHoveredShape(shape, coords) {
+    var hoveredShape = null;
+    if (shape.checkHovered(coords)) {
+        for (child of shape.children) {
+            hoveredShape = recursiveFindHoveredShape(child, coords);
+
+            // a child is being hovered
+            if (hoveredShape != null) {
+                return hoveredShape;
+            }
+        }
+
+        // no children are being hovered
+        return shape;
+    }
+
+    // shape is not beingh overed
+    return null
 };
