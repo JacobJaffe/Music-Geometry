@@ -99,16 +99,26 @@ function keyboardPress(e) {
 }
 
 /* a listener for the slider user input */
-function masterSpeedSlider(speed) {
+function MASTER_SPEED_SLIDER(speed) {
     MASTER_CONTROLLER.speed = speed;
 }
 
-/* moves master speed slider to indicated speed */
-function moveMasterSpeedSlider(speed) {
-    var masterSpeedSlider = document.getElementById("masterSpeedSlider");
-    masterSpeedSlider.value = speed;
+function PLAY_BUTTON() {
+    MASTER_CONTROLLER.TogglePlaying();
 }
 
-function togglePlaying() {
-    MASTER_CONTROLLER.TogglePlaying();
+function SELECTED_SHAPE_RADIUS_SLIDER() {
+
+}
+
+function SELECTED_SHAPE_PAUSE_BUTTON() {
+    MASTER_CONTROLLER.PauseSelectedShape();
+}
+
+function MOUSE_MOVE(event) {
+    MASTER_CONTROLLER.Inputs.onMouseMove(event, MASTER_CONTROLLER.shapes, MASTER_CONTROLLER.View.canvas.offsetLeft, MASTER_CONTROLLER.View.canvas.offsetTop);
+}
+
+function MOUSE_DOWN(event) {
+    MASTER_CONTROLLER.Inputs.onMouseDown();
 }

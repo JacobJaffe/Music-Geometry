@@ -7,8 +7,8 @@ function Controller(speedSliderId, pauseButtonId, canvasContainerId, canvasId) {
     this.Inputs = new Inputs(speedSliderId, pauseButtonId);
     this.View = new View(canvasContainerId, canvasId);
 
-    this.View.canvas.addEventListener("mousemove", (event) => {this.Inputs.onMouseMove(event, this.shapes, this.View.canvas.offsetLeft, this.View.canvas.offsetTop)}, false);
-    this.View.canvas.addEventListener("mousedown", (event) => {this.Inputs.onMouseDown()}, false);
+    this.View.canvas.addEventListener("mousemove", (event) => {MOUSE_MOVE(event)}, false);
+    this.View.canvas.addEventListener("mousedown", (event) => {MOUSE_DOWN(event)}, false);
     window.addEventListener('keypress', keyboardPress, false);
 
     this.shapes = [];
@@ -20,11 +20,11 @@ Controller.prototype.TogglePlaying = function(toggle) {
     this.isPlaying = toggle == null ? !this.isPlaying : toggle; // by default invert, can over-ride to set a state
     if (this.isPlaying) {
         this.Inputs.pauseButton.innerHTML = "Pause";
-        moveMasterSpeedSlider(this.speed);
+        this.Inputs.speedSlider.value = (this.speed);
         this.drawFrame();
     } else {
         this.Inputs.pauseButton.innerHTML = "Play";
-        moveMasterSpeedSlider(0);
+        this.Inputs.speedSlider.value = (0);
     }
 };
 
@@ -57,6 +57,16 @@ Controller.prototype.drawFrame = function() {
         });
     }
 };
+
+Controller.prototype.PauseSelectedShape = function () {
+    if (this.Inputs.selectedShape == null) {
+        console.error ("no selected shape");
+    } else {
+        this.Inputs.selectedShape.togglePaused();
+    }
+};
+
+/* shape editing */
 
 Controller.prototype.AddShape = function(shape) {
     this.shapes.push(shape);
