@@ -1,6 +1,6 @@
 
 
-define(["./shapes/pianoCircle", "./physics/coords", "./physics/velocity", "./physics/kinematics", "./shapes/pianoSegment", "./controller/controller", "./controller/inputs", "./controller/view"], function () {
+define(["./shapes/pianoCircle", "./physics/coords", "./physics/velocity", "./physics/kinematics", "./shapes/pianoSegment", "./controller/controller", "./controller/inputs", "./controller/view", "./util/idGenerator", "./HUD/trajectory"], function () {
     return {
         setup: setup
     };

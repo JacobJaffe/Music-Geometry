@@ -8,10 +8,14 @@ var Kinematics = (function () {
         this.angularVelocity = angularVelocity == null ? 0 : angularVelocity;
         this.angle = angle == null ? 0 : angle;
     }
-    Kinematics.prototype.move = function (masterSpeed) {
 
+    Kinematics.prototype.move = function (masterSpeed) {
         this.pos = new Coords(this.pos.x + this.velocity.dx * masterSpeed, this.pos.y + this.velocity.dy * masterSpeed);
         this.angle  += 0.001 * this.angularVelocity * masterSpeed;
+    };
+
+    Kinematics.prototype.realPos = function() {
+        return new Coords(this.origin.x + this.pos.x, this.origin.y + this.pos.y);
     };
 
     return Kinematics;

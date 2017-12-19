@@ -15,6 +15,7 @@ function PianoCircle(kinematics, radius, numSegments, keyFunction) {
     this.isHovered = false;
     this.isSelected = false;
     this.isPaused = false;
+    this.id = generateRandomId(8);
 
     // TODO : STyLE
     this.activeColor = "blue";
@@ -188,4 +189,12 @@ PianoCircle.prototype.toggleSelected = function(overide) {
     if (overide == null || overide != this.isSelected) {
         this.isSelected = !this.isSelected;
     }
+};
+
+PianoCircle.prototype.getCenter = function() {
+    return this.Kinematics.realPos();
+};
+
+PianoCircle.prototype.traject = function(trajectory) {
+  this.kinematics.velocity = new Velocity(trajectory.magnitude * Math.cos(trajectory.angle) / 10, -trajectory.magnitude * Math.sin(trajectory.angle) / 10);
 };
