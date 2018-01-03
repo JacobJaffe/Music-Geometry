@@ -6,6 +6,7 @@
 function Controller(speedSliderId, pauseButtonId, canvasContainerId, canvasId) {
     this.Inputs = new Inputs(speedSliderId, pauseButtonId);
     this.View = new View(canvasContainerId, canvasId);
+    this.Audio = new Audio();
 
     this.View.canvas.addEventListener("mousemove", (event) => {MOUSE_MOVE(event)}, false);
     this.View.canvas.addEventListener("mousedown", (event) => {MOUSE_DOWN(event)}, false);
@@ -59,7 +60,7 @@ Controller.prototype.drawFrame = function() {
     }
 
     // todo: allow drawing of trajectories in more general cases
-    if (this.Inputs.isMouseDown && this.Inputs.selectedShape != null) {
+    if (this.Inputs.isMouseDown && this.Inputs.selectedShape != null && this.trajectory != null) {
         this.trajectory.draw(this.View.context);
     }
 
@@ -69,30 +70,6 @@ Controller.prototype.drawFrame = function() {
             _this.drawFrame();
         });
     }
-};
-
-Controller.prototype.drawTrajectory = function () {
-
-    if (this.Inputs.selectedShape == null) {
-        return;
-    }
-
-    let context = this.View.context;
-    var selectedShapePos = this.Inputs.selectedShape.kinematics.realPos();
-    let magnitude = Coords.distance(this.Inputs.mouseCoords, selectedShapePos);
-    let angle = Coords.angle(this.Inputs.mouseCoords, selectedShapePos);
-
-    // start trajectory in the center of the shape
-    context.beginPath();
-    context.moveTo(selectedShapePos.x, selectedShapePos.y);
-
-    // move to the projection of the push
-    context.lineTo(selectedShapePos.x + (-magnitude * Math.cos(angle)), selectedShapePos.y + (magnitude * Math.sin(angle)));
-
-    // TODO: decide how we want to style the trajectory
-    context.lineWidth = 5;
-    context.strokeStyle = "black";
-    context.stroke();
 };
 
 Controller.prototype.PauseSelectedShape = function (overide) {
@@ -116,6 +93,12 @@ Controller.prototype.CreateMasterCircle = function () {
     var kinematics = new Kinematics(origin, pos, velocity, 5, 0);
     var masterCircle = new PianoCircle(kinematics, this.View.canvasContainerRadius, 12, () => {});
 
+
+    var keyFunction = () => {
+        let sound = new Frequency(this.Audio.audioContext, this.Audio.masterGain, 369.994422711634398, "sine", 10);
+        this.Audio.addSound(sound);
+    };
+
     // NOTE: these origins get reset by addChild()
     // Children of the master piano
     var MAX = 3;
@@ -123,28 +106,28 @@ Controller.prototype.CreateMasterCircle = function () {
     var angle = 0;
     var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
     var kinematics = new Kinematics(new Coords(), Coords.random(masterCircle.r, masterCircle.r), velocity, 10, 0 );
-    var child1 = new PianoCircle(kinematics, masterCircle.r / 1.5, 8, () => { });
+    var child1 = new PianoCircle(kinematics, masterCircle.r / 1.5, 8, keyFunction);
 
 
-    // Children of children of the master piano
-    var MAX = 3;
-    var MIN = -3;
-    var angle = 0;
-    var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
-    var kinematics = new Kinematics(new Coords(), Coords.random(child1.r, child1.r), velocity, 10, 0 );
-    var child2 = new PianoCircle(kinematics, child1.r / 1.5, 8, () => { });
-
-
-    // Children of children of children of the master piano
-    var MAX = 3;
-    var MIN = -3;
-    var angle = 0;
-    var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
-    var kinematics = new Kinematics(new Coords(), Coords.random(child2.r, child2.r), velocity, 10, 0 );
-    var child3 = new PianoCircle(kinematics, child2.r / 1.5, 8, () => { });
-
-    child2.addChild(child3);
-    child1.addChild(child2);
+    // // Children of children of the master piano
+    // var MAX = 3;
+    // var MIN = -3;
+    // var angle = 0;
+    // var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
+    // var kinematics = new Kinematics(new Coords(), Coords.random(child1.r, child1.r), velocity, 10, 0 );
+    // var child2 = new PianoCircle(kinematics, child1.r / 1.5, 8, () => { });
+    //
+    //
+    // // Children of children of children of the master piano
+    // var MAX = 3;
+    // var MIN = -3;
+    // var angle = 0;
+    // var velocity = new Velocity(Math.random() * (MAX - MIN) + MIN, Math.random() * (MAX - MIN) + MIN);
+    // var kinematics = new Kinematics(new Coords(), Coords.random(child2.r, child2.r), velocity, 10, 0 );
+    // var child3 = new PianoCircle(kinematics, child2.r / 1.5, 8, () => { });
+    //
+    // child2.addChild(child3);
+    // child1.addChild(child2);
 
     masterCircle.addChild(child1);
     this.AddShape(masterCircle);

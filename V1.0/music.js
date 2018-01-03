@@ -62,7 +62,7 @@ var areNotesPlaying = false;
 function dampenActiveNotes()
 {
     for (var s = 0; s < scales.length; s ++) {
-    for (var i = 0; i < balls.length; i++) {
+        for (var i = 0; i < balls.length; i++) {
             for (var j = 0; j < activeNotes[s][i].length; j++) {
                 if (activeNotes[s][i][j] != null) {
                     activeNotes[s][i][j].gainNode.gain.value -= 0.1;

@@ -11,18 +11,13 @@ function Trajectory() {
 }
 
 Trajectory.prototype.draw = function(context) {
-    // start trajectory in the center of the shape
-    context.beginPath();
-    context.moveTo(this.start.x, this.start.y);
-    // move to the projection of the push
+    if (this.start.x == this.end.x && this.start.y == this.end.y) {
+        return;
+    }
 
-    // MINUS, because we want reverse
-    context.lineTo(this.start.x - (-this.magnitude * Math.cos(this.angle)), this.start.y - (this.magnitude * Math.sin(this.angle)));
+    var to = new Coords(this.start.x - (-this.magnitude * Math.cos(this.angle)), this.start.y - (this.magnitude * Math.sin(this.angle)));
 
-    // TODO: decide how we want to style the trajectory
-    context.lineWidth = 5;
-    context.strokeStyle = "black";
-    context.stroke();
+    drawArrow(this.start, to, context, "black", "none")
 };
 
 Trajectory.prototype.update = function(start, end) {

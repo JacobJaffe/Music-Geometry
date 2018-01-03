@@ -138,7 +138,9 @@ function MOUSE_DOWN(event) {
 
 function MOUSE_UP(event) {
     MASTER_CONTROLLER.Inputs.isMouseDown = false;
-    if (MASTER_CONTROLLER.Inputs.selectedShape != null) {
+
+    // null check on trajectory else the shapes will have uncaught issues with the physics
+    if (MASTER_CONTROLLER.Inputs.selectedShape != null && MASTER_CONTROLLER.trajectory != null) {
         MASTER_CONTROLLER.Inputs.selectedShape.traject(MASTER_CONTROLLER.trajectory);
     }
     MASTER_CONTROLLER.trajectory.update(0, 0);

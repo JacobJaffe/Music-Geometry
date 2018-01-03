@@ -16,6 +16,7 @@ function PianoCircle(kinematics, radius, numSegments, keyFunction) {
     this.isSelected = false;
     this.isPaused = false;
     this.id = generateRandomId(8);
+    this.keyFunction = keyFunction;
 
     // TODO : STyLE
     this.activeColor = "blue";
@@ -115,6 +116,7 @@ function handleCollision(parent, child) {
 
     child.keyPress = parent.keyAtAngle(AngleParentCenterToCollision);
     parent.Segments[child.keyPress].isActive = true;
+    child.keyFunction();
 }
 
 /* returns the key at the angle */
@@ -195,6 +197,10 @@ PianoCircle.prototype.getCenter = function() {
     return this.Kinematics.realPos();
 };
 
+// TODO: maybe this should be part of kinematics
 PianoCircle.prototype.traject = function(trajectory) {
-  this.kinematics.velocity = new Velocity(trajectory.magnitude * Math.cos(trajectory.angle) / 10, -trajectory.magnitude * Math.sin(trajectory.angle) / 10);
+    if ( (trajectory.start.x != trajectory.end.x) && (trajectory.start.y != trajectory.end.y) ) {
+
+        this.kinematics.velocity = new Velocity(trajectory.magnitude * Math.cos(trajectory.angle) / 10, -trajectory.magnitude * Math.sin(trajectory.angle) / 10);
+    }
 };
